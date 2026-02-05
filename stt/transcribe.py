@@ -10,6 +10,20 @@ from typing import List, Optional
 import os
 
 
+_WHISPER_MODEL = None
+_WHISPER_MODEL_NAME = None
+
+
+
+def _get_whisper_model():
+    global _WHISPER_MODEL, _WHISPER_MODEL_NAME
+    model_name = os.environ.get("WHISPER_MODEL", "small")
+    if _WHISPER_MODEL is None or _WHISPER_MODEL_NAME != model_name:
+        from faster_whisper import WhisperModel
+        _WHISPER_MODEL = WhisperModel(model_name, compute_type="int8")
+        _WHISPER_MODEL_NAME = model_name
+    return _WHISPER_MODEL
+
 def _select_best_text(texts: List[str]) -> str:
     # Pick the longest non-empty transcript as a simple quality heuristic
     texts = [t.strip() for t in texts if t and t.strip()]
@@ -42,8 +56,7 @@ def transcribe_audio(wav_path: str, chunk_sec: int = 30) -> str:
         )
 
     # Small model is faster; medium/large is more accurate (choose based on hardware)
-    model_name = os.environ.get("WHISPER_MODEL", "medium")
-    model = WhisperModel(model_name, compute_type="int8")
+    model = _get_whisper_model()
 
     segments, _info = model.transcribe(
         str(wav_path),
@@ -82,8 +95,7 @@ def detect_language(audio_path: str) -> str:
             "faster-whisper not installed. Install via: pip install faster-whisper"
         )
 
-    model_name = os.environ.get("WHISPER_MODEL", "medium")
-    model = WhisperModel(model_name, compute_type="int8")
+    model = _get_whisper_model()
 
     _segments, info = model.transcribe(
         str(audio_path),

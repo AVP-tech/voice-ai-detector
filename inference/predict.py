@@ -3,14 +3,23 @@ import numpy as np
 from features.extract import extract_features_from_wav
 
 MODEL_PATH = "artifacts/model.pkl"
+_MODEL_CACHE = None
 
 # 🔒 CONFIDENCE THRESHOLDS
 AI_THRESHOLD = 0.80
 AI_LIKELY_THRESHOLD = 0.60
 
 
+
+
+def _get_model():
+    global _MODEL_CACHE
+    if _MODEL_CACHE is None:
+        _MODEL_CACHE = joblib.load(MODEL_PATH)
+    return _MODEL_CACHE
+
 def predict_audio(filepath):
-    model = joblib.load(MODEL_PATH)
+    model = _get_model()
 
     features = extract_features_from_wav(filepath)
     if features is None:
