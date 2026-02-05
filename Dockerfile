@@ -17,4 +17,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 ENV PORT=8080
-CMD ["sh", "-c", "gunicorn -b 0.0.0.0:${PORT} main:app"]
+CMD ["sh", "-c", "gunicorn -b 0.0.0.0:${PORT} --timeout 120 --graceful-timeout 120 --workers 1 main:app"]
+
