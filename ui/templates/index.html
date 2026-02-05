@@ -336,10 +336,10 @@ input::placeholder {
       <div class="form-grid">
         <div>
           <label>API URL</label>
-          <input id="apiUrl" placeholder="https://api.example.com/api/voice-detection">
+          <input id="apiUrl" autocomplete="off" placeholder="https://api.example.com/api/voice-detection">
 
           <label style="margin-top:14px;">API Key</label>
-          <input id="apiKey" placeholder="Enter your API key">
+          <input id="apiKey" autocomplete="off" placeholder="Enter your API key">
         </div>
 
         <div>
@@ -406,6 +406,11 @@ input::placeholder {
 </div>
 
 <script>
+window.addEventListener("load", () => {
+  if (typeof apiUrl !== "undefined") apiUrl.value = "";
+  if (typeof apiKey !== "undefined") apiKey.value = "";
+});
+
 let base64Audio = "";
 
 fileInput.onchange = e => {
