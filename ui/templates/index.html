@@ -406,8 +406,26 @@ input::placeholder {
 </div>
 
 <script>
+
+function normalizeApiUrl(raw) {
+  const trimmed = (raw || "").trim();
+  if (!trimmed) {
+    return `${window.location.origin}/ui/voice-detection`;
+  }
+  try {
+    const u = new URL(trimmed, window.location.origin);
+    // If user provided only domain or root, auto-append /ui/voice-detection
+    if (u.pathname === "/" || u.pathname === "") {
+      u.pathname = "/ui/voice-detection";
+    }
+    return u.toString();
+  } catch (e) {
+    return trimmed;
+  }
+}
+
 window.addEventListener("load", () => {
-  if (typeof apiUrl !== "undefined") apiUrl.value = "";
+  if (typeof apiUrl !== "undefined") apiUrl.value = window.location.origin;
   if (typeof apiKey !== "undefined") apiKey.value = "";
 });
 
@@ -426,7 +444,7 @@ fileInput.onchange = e => {
 };
 
 async function sendRequest() {
-  const url = apiUrl.value.trim();
+  const url = normalizeApiUrl(apiUrl.value);
   const key = apiKey.value.trim();
 
   if (!url || !key || !base64Audio) {
