@@ -336,7 +336,7 @@ input::placeholder {
       <div class="form-grid">
         <div>
           <label>API URL</label>
-          <input id="apiUrl" placeholder="https://api.example.com/api/voice-detection" value="http://127.0.0.1:5000/ui/voice-detection">
+          <input id="apiUrl" placeholder="https://api.example.com/api/voice-detection">
 
           <label style="margin-top:14px;">API Key</label>
           <input id="apiKey" placeholder="Enter your API key">
@@ -445,7 +445,16 @@ async function sendRequest() {
       })
     });
 
-    const data = await res.json();
+    const text = await res.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      data = { status: "error", message: `Invalid response (HTTP ${res.status})` };
+    }
+    if (!res.ok && data.status !== "error") {
+      data = { status: "error", message: `Request failed (HTTP ${res.status})` };
+    }
     showResult(data);
 
   } catch(e) {
