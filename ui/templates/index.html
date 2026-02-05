@@ -1,0 +1,494 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI Voice Detection</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #0b0f14;
+  --panel: #111823;
+  --panel-2: #0f1824;
+  --text: #e6f1ff;
+  --muted: #8aa0b8;
+  --cyan: #21d4fd;
+  --blue: #3a7bd5;
+  --violet: #6a5af9;
+  --glow: rgba(33, 212, 253, 0.35);
+  --border: rgba(255,255,255,0.08);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font-family: "Space Grotesk", sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(900px 600px at 70% 10%, rgba(58,123,213,0.12), transparent 60%),
+    radial-gradient(700px 500px at 20% 30%, rgba(33,212,253,0.14), transparent 55%),
+    linear-gradient(180deg, #070a0e 0%, #0b1118 100%);
+  min-height: 100vh;
+  text-align: center;
+}
+
+
+.grid-overlay {
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(transparent 95%, rgba(255,255,255,0.04) 96%),
+    linear-gradient(90deg, transparent 95%, rgba(255,255,255,0.04) 96%);
+  background-size: 48px 48px;
+  pointer-events: none;
+  opacity: 0.35;
+  z-index: 0;
+}
+
+.container {
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 44px 20px 80px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(15, 24, 36, 0.9);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--cyan);
+  box-shadow: 0 0 14px var(--cyan);
+}
+
+h1 {
+  font-size: clamp(36px, 6vw, 64px);
+  line-height: 1.05;
+  margin: 22px 0 16px;
+  font-weight: 700;
+}
+
+.gradient {
+  background: linear-gradient(90deg, var(--cyan), #4ea1ff 45%, #7a5cff 85%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 18px;
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+.btn {
+  padding: 14px 22px;
+  border-radius: 14px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: 0.2s ease;
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.btn.primary {
+  background: linear-gradient(90deg, var(--cyan), var(--blue));
+  color: #041015;
+  box-shadow: 0 10px 30px rgba(33,212,253,0.2);
+}
+
+.btn.secondary {
+  background: #0f1824;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.section {
+  margin-top: 80px;
+}
+
+.section-title {
+  font-size: clamp(26px, 4vw, 40px);
+  margin: 0 0 10px;
+}
+
+.section-subtitle {
+  color: var(--muted);
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+.panel {
+  background: linear-gradient(180deg, rgba(18,26,37,0.95), rgba(10,14,20,0.95));
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 26px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+label {
+  font-size: 13px;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 8px;
+  letter-spacing: 0.3px;
+  text-align: center;
+}
+
+
+input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: #0e1622;
+  color: var(--text);
+  font-size: 14px;
+  text-align: center;
+}
+
+
+input::placeholder {
+  color: rgba(138,160,184,0.7);
+}
+
+.upload-box {
+  border: 2px dashed rgba(255,255,255,0.14);
+  border-radius: 16px;
+  padding: 34px;
+  text-align: center;
+  cursor: pointer;
+  transition: 0.25s ease;
+  background: #0e1622;
+  color: var(--muted);
+}
+
+.upload-box:hover {
+  border-color: var(--cyan);
+  box-shadow: 0 0 20px rgba(33,212,253,0.12);
+}
+
+.upload-title {
+  color: var(--cyan);
+  font-weight: 600;
+}
+
+.file-name {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.submit-row {
+  margin-top: 20px;
+}
+
+.analyze {
+  width: 100%;
+  padding: 16px;
+  font-size: 16px;
+}
+
+.result {
+  margin-top: 22px;
+  padding: 22px;
+  border-radius: 16px;
+  background: #0f1824;
+  border: 1px solid var(--border);
+  display: none;
+}
+
+.badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.ai { background:#ef4444; }
+.human { background:#22c55e; }
+
+.kv {
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  gap: 8px 16px;
+  margin-top: 12px;
+}
+
+.kv div {
+  padding: 6px 0;
+  border-bottom: 1px dashed rgba(255,255,255,0.08);
+}
+
+.mono {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  opacity: 0.85;
+  color: #b9c7da;
+  margin-top: 10px;
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.card {
+  background: #0f1824;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 22px;
+  min-height: 160px;
+}
+
+.card h3 {
+  margin-top: 0;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.step {
+  text-align: center;
+  padding: 18px;
+}
+
+.step .icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 14px;
+  background: #0f1824;
+  border: 1px solid var(--border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  color: var(--cyan);
+}
+
+.footer {
+  margin-top: 80px;
+  padding-top: 26px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  color: var(--muted);
+}
+
+.loader {
+  display:none;
+  margin-top:16px;
+  text-align:center;
+  opacity:.8;
+}
+
+@media (max-width: 900px) {
+  .form-grid,
+  .features,
+  .steps {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+
+<body>
+<div class="grid-overlay"></div>
+
+<div class="container">
+  <div class="pill"><span class="dot"></span>India AI Impact Hackathon</div>
+  <h1>Detect AI vs Human <span class="gradient">Voice with Confidence</span></h1>
+  <div class="subtitle">Production-grade voice authenticity detection by <span class="gradient">Team Vibe Coders</span></div>
+  <section id="try" class="section">
+    <div class="section-title">Try <span class="gradient">Voice Detection</span></div>
+    <div class="section-subtitle">Upload an MP3 to verify if the voice is AI-generated</div>
+
+    <div class="panel">
+      <div class="form-grid">
+        <div>
+          <label>API URL</label>
+          <input id="apiUrl" placeholder="https://api.example.com/api/voice-detection" value="http://127.0.0.1:5000/ui/voice-detection">
+
+          <label style="margin-top:14px;">API Key</label>
+          <input id="apiKey" placeholder="Enter your API key">
+        </div>
+
+        <div>
+          <label>Upload MP3 (Base64 will be auto generated)</label>
+          <div class="upload-box" onclick="fileInput.click()">
+            <div class="upload-title">Drag & Drop MP3</div>
+            <div>or Click to Upload</div>
+            <div style="margin-top:8px;font-size:12px;opacity:.7;">MP3 only (max 10MB)</div>
+          </div>
+          <input type="file" id="fileInput" accept=".mp3" hidden>
+          <div id="fileName" class="file-name"></div>
+        </div>
+      </div>
+
+      <div class="submit-row">
+        <button class="btn primary analyze" onclick="sendRequest()">Analyze Voice</button>
+      </div>
+
+      <div class="loader" id="loader">Analyzing voice... please wait</div>
+      <div class="result" id="result"></div>
+    </div>
+  </section>
+
+  <section id="specs" class="section">
+    <div class="section-title">Powerful <span class="gradient">Features</span></div>
+    <div class="section-subtitle">Built for accuracy, designed for developers</div>
+    <div class="features">
+      <div class="card">
+        <h3>Secure API-based Detection</h3>
+        <div class="section-subtitle">Enterprise-grade security with API key authentication.</div>
+      </div>
+      <div class="card">
+        <h3>Multi-language Support</h3>
+        <div class="section-subtitle">Tamil, English, Hindi, Malayalam, and Telugu.</div>
+      </div>
+      <div class="card">
+        <h3>Confidence + Explanation</h3>
+        <div class="section-subtitle">Transparent classification with confidence score.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-title">How It <span class="gradient">Works</span></div>
+    <div class="section-subtitle">Three simple steps to detect AI-generated voices</div>
+    <div class="steps">
+      <div class="step">
+        <div class="icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 16V6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M8 10l4-4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <div>Upload MP3</div>
+        <div class="section-subtitle">Submit audio through our secure API endpoint.</div>
+      </div>
+      <div class="step">
+        <div class="icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 16V6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M8 10l4-4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <div>AI Analysis</div>
+        <div class="section-subtitle">Neural models process voice patterns in real-time.</div>
+      </div>
+      <div class="step">
+        <div class="icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 16V6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M8 10l4-4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <div>Classification Result</div>
+        <div class="section-subtitle">Instant AI vs Human decision with confidence.</div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+let base64Audio = "";
+
+fileInput.onchange = e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  fileName.innerText = file.name;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    base64Audio = reader.result.split(",")[1];
+  };
+  reader.readAsDataURL(file);
+};
+
+async function sendRequest() {
+  const url = apiUrl.value.trim();
+  const key = apiKey.value.trim();
+
+  if (!url || !key || !base64Audio) {
+    alert("Fill all fields and upload MP3");
+    return;
+  }
+
+  loader.style.display = "block";
+  result.style.display = "none";
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type":"application/json",
+        "x-api-key": key
+      },
+      body: JSON.stringify({
+        audioFormat: "mp3",
+        audioBase64: base64Audio
+      })
+    });
+
+    const data = await res.json();
+    showResult(data);
+
+  } catch(e) {
+    showResult({status:"error", message:e.message});
+  }
+
+  loader.style.display = "none";
+}
+
+function showResult(data) {
+  result.style.display = "block";
+
+  if (data.status !== "success") {
+    result.innerHTML = `
+      <h3>Result <span class="badge ai">ERROR</span></h3>
+      <div class="kv">
+        <div>Status</div><div>${data.status || "error"}</div>
+        <div>Message</div><div>${data.message || "Unknown error"}</div>
+      </div>
+    `;
+    return;
+  }
+
+  const badge = data.classification === "AI_GENERATED"
+    ? `<span class="badge ai">AI GENERATED</span>`
+    : `<span class="badge human">HUMAN</span>`;
+
+  result.innerHTML = `
+    <h3>Result ${badge}</h3>
+    <div class="kv">
+      <div>Status</div><div>${data.status}</div>
+      <div>Language</div><div>${data.language}</div>
+      <div>Classification</div><div>${data.classification}</div>
+      <div>ConfidenceScore</div><div>${data.confidenceScore}</div>
+      <div>Explanation</div><div>${data.explanation}</div>
+    </div>
+    <div class="mono">
+      ${JSON.stringify(data)}
+    </div>
+  `;
+
+}
+</script>
+</body>
+</html>
+
