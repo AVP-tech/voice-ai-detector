@@ -163,7 +163,3 @@ The trained model is saved to `artifacts/model.pkl`.
 - Some legacy test scripts reference an old `SpamIntentEngine.score(..., lang=...)` signature and may need updates.
 
 ---
-
-**License**
-
-Add your license here.
